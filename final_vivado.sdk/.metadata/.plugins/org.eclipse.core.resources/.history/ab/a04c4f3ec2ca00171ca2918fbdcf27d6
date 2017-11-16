@@ -1,0 +1,37 @@
+#include <xaxidma.h>
+#include <xbacksub.h>
+#include <xparameters.h>
+#include <stdio.h>
+#include <xil_cache.h>
+#include "frame1.h"
+#include <xfeature.h>
+XAxiDma DMA0;
+XBacksub backsub;
+
+
+#define TX_BASE_ADDR 0x11000000
+#define RX_BASE_ADDR 0x12000000
+
+unsigned char *m_dma_buffer_TX = (unsigned char*) TX_BASE_ADDR;
+unsigned char *m_dma_buffer_RX = (unsigned char*) RX_BASE_ADDR;
+
+
+int DMAInit() {
+	XAxiDma_Config * cfg_ptr = XAxiDma_LookupConfig(XPAR_AXIDMA_0_DEVICE_ID);
+
+	if (!cfg_ptr) {
+		xil_printf("No config found for %d\r\n", XPAR_AXIDMA_0_DEVICE_ID);
+		return XST_FAILURE;
+	}
+
+	int Status = XAxiDma_CfgInitialize(&DMA0, cfg_ptr);
+	if (Status != XST_SUCCESS) {
+		xil_printf("Initialization failed %d\r\n", Status);
+		return XST_FAILURE;
+	}
+
+	XAxiDma_IntrDisable(&DMA0, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
+	XAxiDma_IntrDisable(&DMA0, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
+
+	return XST_SUCCESS;
+}
